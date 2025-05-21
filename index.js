@@ -26,6 +26,11 @@ async function run() {
 
         const hobbyCollection=client.db('hobbyDB').collection('hobby')
 
+        app.get('/hobby',async(req,res)=>{
+            const result=await hobbyCollection.find().toArray()
+            res.send(result)
+        })
+
         app.post('/hobby',async(req,res)=>{
             const newHobby=req.body
             console.log(newHobby)
