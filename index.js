@@ -25,6 +25,7 @@ async function run() {
         await client.connect();
 
         const hobbyCollection=client.db('hobbyDB').collection('hobby')
+        const usersCollection=client.db('hobbyDB').collection('users')
 
         app.get('/hobby',async(req,res)=>{
             const result=await hobbyCollection.find().toArray()
@@ -35,6 +36,14 @@ async function run() {
             const newHobby=req.body
             console.log(newHobby)
             const result=await hobbyCollection.insertOne(newHobby)
+            res.send(result)
+        })
+
+        //user related APIs
+        app.post('/users',async(req,res)=>{
+            const userProfile=req.body
+            console.log(userProfile)
+            const result=await usersCollection.insertOne(userProfile)
             res.send(result)
         })
 
