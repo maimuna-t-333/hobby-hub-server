@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config()
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
 const port = process.env.PORT || 3000;
 
@@ -67,6 +67,19 @@ async function run() {
             const result = await hobbyCollection.deleteOne({ _id: new ObjectId(id) });
             res.send(result);
         });
+
+        app.put('/hobby/:id', async (req, res) => {
+            const id = req.params.id;
+            const updatedData = req.body;
+
+            const updateDoc = {
+                $set: updatedData
+            };
+
+            const result = await hobbyCollection.updateOne({ _id: new ObjectId(id) }, updateDoc);
+            res.send(result);
+        });
+
 
 
 
