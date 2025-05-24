@@ -24,36 +24,50 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
 
-        const hobbyCollection=client.db('hobbyDB').collection('hobby')
-        const usersCollection=client.db('hobbyDB').collection('users')
+        const hobbyCollection = client.db('hobbyDB').collection('hobby')
+        const usersCollection = client.db('hobbyDB').collection('users')
 
-        app.get('/hobby',async(req,res)=>{
-            const result=await hobbyCollection.find().toArray()
+        app.get('/hobby', async (req, res) => {
+            const result = await hobbyCollection.find().toArray()
             res.send(result)
         })
 
-        app.post('/hobby',async(req,res)=>{
-            const newHobby=req.body
+        app.post('/hobby', async (req, res) => {
+            const newHobby = req.body
             console.log(newHobby)
-            const result=await hobbyCollection.insertOne(newHobby)
+            const result = await hobbyCollection.insertOne(newHobby)
             res.send(result)
         })
 
         //user related APIs
 
-        app.get('/users',async(req,res)=>{
-            const result=await usersCollection.find().toArray()
+        app.get('/users', async (req, res) => {
+            const result = await usersCollection.find().toArray()
             res.send(result)
         })
 
-
-
-        app.post('/users',async(req,res)=>{
-            const userProfile=req.body
+        app.post('/users', async (req, res) => {
+            const userProfile = req.body
             console.log(userProfile)
-            const result=await usersCollection.insertOne(userProfile)
+            const result = await usersCollection.insertOne(userProfile)
             res.send(result)
         })
+
+        //hobby
+
+        app.get('/hobby/:id', async (req, res) => {
+            const id = req.params.id;
+            const group = await hobbyCollection.findOne({ _id: new ObjectId(id) });
+
+            res.send(group);
+        });
+
+        app.delete('/hobby/:id', async (req, res) => {
+            const id = req.params.id;
+            const result = await hobbyCollection.deleteOne({ _id: new ObjectId(id) });
+            res.send(result);
+        });
+
 
 
         // Send a ping to confirm a successful connection
