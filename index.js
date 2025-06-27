@@ -1,6 +1,7 @@
+require('dotenv').config()
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config()
+
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
 const port = process.env.PORT || 3000;
@@ -22,22 +23,50 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
 
         const hobbyCollection = client.db('hobbyDB').collection('hobby')
         const usersCollection = client.db('hobbyDB').collection('users')
 
+
+
         app.get('/hobby', async (req, res) => {
-            const result = await hobbyCollection.find().toArray()
-            res.send(result)
-        })
+            try {
+                const sortOrder = req.query.sort === 'desc' ? -1 : 1;
+                const search = (req.query.search || '') || '';
+
+                const filter = {};
+                if (search) {
+                    filter.groupName = { $regex: search, $options: 'i' };
+                }
+
+                const hobbies = await hobbyCollection
+                    .find(filter)
+                    .sort({ groupName: sortOrder })
+                    .toArray();
+
+                console.log('Search:', search, 'Sort order:', sortOrder, 'Results count:', hobbies.length);
+                res.send(hobbies);
+            } catch (error) {
+                console.error('Error fetching hobbies:', error);
+                res.status(500).send({ error: 'Failed to fetch hobbies' });
+            }
+        });
+
 
         app.post('/hobby', async (req, res) => {
-            const newHobby = req.body
-            console.log(newHobby)
-            const result = await hobbyCollection.insertOne(newHobby)
-            res.send(result)
-        })
+            const newHobby = req.body;
+
+            // Trim groupName to remove leading/trailing spaces
+            if (newHobby.groupName) {
+                newHobby.groupName = newHobby.groupName.trim();
+            }
+
+            console.log(newHobby);
+            const result = await hobbyCollection.insertOne(newHobby);
+            res.send(result);
+        });
+
 
         //user related APIs
 
@@ -68,9 +97,15 @@ async function run() {
             res.send(result);
         });
 
+
         app.put('/hobby/:id', async (req, res) => {
             const id = req.params.id;
             const updatedData = req.body;
+
+            // Trim groupName to remove leading/trailing spaces before updating
+            if (updatedData.groupName) {
+                updatedData.groupName = updatedData.groupName.trim();
+            }
 
             const updateDoc = {
                 $set: updatedData
@@ -80,9 +115,10 @@ async function run() {
             res.send(result);
         });
 
+
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+        // await client.db("admin").command({ ping: 1 });
+        // console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
